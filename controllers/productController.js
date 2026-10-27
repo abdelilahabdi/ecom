@@ -39,7 +39,31 @@ const getProductById = async (req,res) => {
     }
 };
 
+
+   const updateProduct = async (req , res) => {
+    try {
+        const product = await Product.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {new : true , runValidators : true}
+        );
+
+
+        if(!product){
+            return res.status(404).json({
+                message: "product not found"
+            });
+        }
+
+        res.status(200).json(product) ;
+
+    } catch (error) {
+        res.status(500).json({message : error.message});
+    }
+   };
+
 module.exports = {createProduct,
                   getProduct,
-                  getProductById
+                  getProductById,
+                  updateProduct
 } ;
