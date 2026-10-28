@@ -4,11 +4,13 @@ const app = express();
 
 const productRoutes = require("./routes/productRoutes");
 
+const authRoutes = require("./routes/authRoutes") ;
 
 app.use(express.json());
 
 app.use("/api/products", productRoutes);
 
+app.use("/api/auth", authRoutes) ;
 
 
 
