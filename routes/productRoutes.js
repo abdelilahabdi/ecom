@@ -7,7 +7,7 @@ const {createProduct, getProduct , getProductById, updateProduct} = require("../
 router.post("/",createProduct) ;
 router.get("/",getProduct) ;
 router.get("/:id",getProductById);
-router.put("/",updateProduct) ;
+router.patch("/:id",updateProduct) ;
 
 
 module.exports = router ;
