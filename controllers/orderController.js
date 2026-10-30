@@ -141,4 +141,45 @@ const createOrder = async (req , res ) => {
     }
 };
 
-module.exports = {createOrder} ;
+
+const getMyOrders = async (req,res) => {
+    try {
+        const orders = await Order.find({
+            client : req.user.id
+        });
+
+        return res.status(200).json({
+            orders: orders
+        });
+
+    } catch (error) {
+        console.error(error) ;
+
+
+        return res.status(500).json({
+            error: {
+                message: "server error"
+            }
+        });
+    }
+};
+
+const getAllOrders = async (req,res) => {
+    try {
+        const orders = await Order.find();
+
+        return res.status(200).json({
+            orders: orders
+        });
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            error: {
+                message: "Server error"
+            }
+        });
+    }
+};
+
+module.exports = {createOrder , getMyOrders , getAllOrders} ;
