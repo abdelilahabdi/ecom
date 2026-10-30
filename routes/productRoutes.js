@@ -4,10 +4,16 @@ const router = express.Router() ;
 
 const {createProduct, getProduct , getProductById, updateProduct} = require("../controllers/productController");
 
-router.post("/",createProduct) ;
+const authenticateToken = require("../middlewares/authenticateToken");
+const authorizeRole = require("../middlewares/authorizeRole");
+
+
+router.post("/", authenticateToken , authorizeRole("seller"),createProduct) ;
 router.get("/",getProduct) ;
 router.get("/:id",getProductById);
-router.put("/",updateProduct) ;
+router.patch("/:id",authenticateToken , authorizeRole("seller"),updateProduct) ;
+
+
 
 
 module.exports = router ;

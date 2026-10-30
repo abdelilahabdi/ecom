@@ -4,26 +4,26 @@ const productSchema = new mongoose.Schema({
 
     name : {
         type : String ,
-        required : true
+        required : true,
+        trim: true
     } ,
 
     description : {
         type : String ,
-        required : true 
+        trim : true 
 
     } ,
 
-    price : {
+    priceCents : {
         type : Number ,
         required : true ,
+        min: 1,
+        validate: Number.isSafeInteger
     } ,
 
-    stock : {
-      type : Number ,
-      required : true 
-    } ,
+    
 
-    availability : {
+    available : {
         type : Boolean ,
         default : true 
     }
