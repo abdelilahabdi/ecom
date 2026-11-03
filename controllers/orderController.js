@@ -182,4 +182,103 @@ const getAllOrders = async (req,res) => {
     }
 };
 
-module.exports = {createOrder , getMyOrders , getAllOrders} ;
+
+
+const getOrderById = async (req,res) => {
+  try {
+    const id = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+            error: {
+                message: "invalid order ID"
+            }
+        });
+    }
+
+    const order = await Order.findById(id) ;
+
+    if(!order) {
+        return res.status(404).json({
+            error:{
+                message: "order not found"
+            }
+        });
+    }
+
+    if (req.user.role === "customer" && order.client.toString() !== req.user.id) {
+        return res.status(403).json({
+            error:{
+                message: "access forbidden"
+            }
+        });
+    }
+
+    return res.status(200).json({
+        order: order
+    });
+  } catch (error) {
+    console.error(error);
+
+
+    return res.status(500).json({
+        error: {
+            message: "server error"
+        }
+    });
+  }
+};
+
+
+const processOrder = async (req,res) => {
+    try {
+        const id = req.params.id ;
+
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                error: {
+                    message: "invalid order ID"
+                }
+            });
+        }
+
+        const order = await Order.findById(id);
+
+
+        if(!order) {
+            return res.status(404).json({
+                error: {
+                    message: "order not found"
+                }
+            });
+        }
+
+        if(order.status === "processed") {
+            return res.status(400).json({
+                error: {
+                    message: "order is already processed"
+                }
+            });
+        }
+
+        order.status = "processed" ;
+
+        await order.save() ;
+
+        return res.status(200).json({
+            message: "order processed successfully" ,
+            order: order
+        }) ;
+    } catch (error) {
+        console.error(error) ;
+         
+        return res.status(500).json({
+            error: {
+                message: "server error"
+            }
+        });
+    }
+};
+
+module.exports = {createOrder , getMyOrders , getAllOrders , getOrderById , processOrder} ;
