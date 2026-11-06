@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
+const { calculateOrderTotal } = require ("../services/orderCalculator");
 
 
 const createOrder = async (req , res ) => {
@@ -106,17 +107,25 @@ const createOrder = async (req , res ) => {
 
 
 
-         
+     // let totalCents = 0 ;
+     // for (const item of orderItems) {
+     //   totalCents = totalCents + item.unitPriceCents * item.quantity ;
 
-       
-      
-      
+     // }
 
-      let totalCents = 0 ;
-      for (const item of orderItems) {
-        totalCents = totalCents + item.unitPriceCents * item.quantity ;
 
+     let totalCents ;
+      try {
+        totalCents = calculateOrderTotal(orderItems);
+      } catch (error) {
+        return res.status(400).json({
+            error: {
+                message: error.message
+            }
+        });
       }
+
+
 
       const order = await Order.create({
         client: req.user.id,
