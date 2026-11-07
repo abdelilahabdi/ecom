@@ -6,7 +6,8 @@ const productRoutes = require("./routes/productRoutes");
 
 const authRoutes = require("./routes/authRoutes") ;
 const orderRoutes = require("./routes/orderRoutes");
-
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger.json");
 
 app.use(express.json());
 
@@ -22,5 +23,8 @@ app.get("/api/health", (req, res) => {
     status: "ok"
   });
 });
+
+// Swagger Documentation
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 module.exports = app;
