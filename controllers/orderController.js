@@ -33,7 +33,7 @@ const createOrder = async (req , res ) => {
 
 
       for(const item of items) {
-        if (!item || !item.product || !Number.isInteger(item.quantity)) {
+        if (!item || !item.productId || !Number.isInteger(item.quantity)) {
             return res.status(400).json({
                 error: {
                     message: "product and valid quantity are required"
@@ -52,7 +52,7 @@ const createOrder = async (req , res ) => {
         }
 
 
-        if (!mongoose.Types.ObjectId.isValid(item.product)) {
+        if (!mongoose.Types.ObjectId.isValid(item.productId)) {
             return res.status(400).json({
                 error: {
                     message: "invalid product ID"
@@ -62,7 +62,7 @@ const createOrder = async (req , res ) => {
 
 
 
-        const productId = item.product.toString() ;
+        const productId = item.productId.toString() ;
 
         if (productIds.includes(productId)) {
             return res.status(400).json({
@@ -77,7 +77,7 @@ const createOrder = async (req , res ) => {
 
 
 
-        const product = await Product.findById(item.product);
+        const product = await Product.findById(item.productId);
 
         if(!product) {
             return res.status(404).json({
@@ -113,6 +113,7 @@ const createOrder = async (req , res ) => {
 
      // }
 
+     // Calculate order total
 
      let totalCents ;
       try {
@@ -126,7 +127,8 @@ const createOrder = async (req , res ) => {
       }
 
 
-
+     // Create order
+     
       const order = await Order.create({
         client: req.user.id,
         items: orderItems,
