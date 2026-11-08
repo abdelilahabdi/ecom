@@ -128,7 +128,7 @@ const createOrder = async (req , res ) => {
 
 
      // Create order
-     
+
       const order = await Order.create({
         client: req.user.id,
         items: orderItems,
@@ -265,11 +265,19 @@ const processOrder = async (req,res) => {
             });
         }
 
-        if(order.status === "processed") {
+        if(req.body && req.body.status !== undefined && req.body.status !== "processed"){
             return res.status(400).json({
                 error: {
-                    message: "order is already processed"
+                    message: "invalid order status"
                 }
+            });
+        }
+
+        if(order.status === "processed") {
+            return res.status(200).json({
+                
+                    message: "order is already processed",
+                    order: order
             });
         }
 

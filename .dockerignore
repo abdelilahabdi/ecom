@@ -1,0 +1,12 @@
+node_modules
+
+.env
+
+.git
+
+coverage
+
+sql/*.db
+sql/*.db-*
+
+*.log

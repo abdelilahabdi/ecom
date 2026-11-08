@@ -6,8 +6,8 @@ const {createOrder , getMyOrders , getAllOrders , getOrderById , processOrder} =
 const authenticateToken = require("../middlewares/authenticateToken");
 const authorizeRole = require("../middlewares/authorizeRole");
 
-router.get("/me", authenticateToken , getMyOrders);
-router.post("/",authenticateToken , createOrder );
+router.get("/me", authenticateToken , authorizeRole("customer") , getMyOrders);
+router.post("/",authenticateToken ,authorizeRole("customer"),  createOrder );
 router.get("/", authenticateToken , authorizeRole ("seller"), getAllOrders) ;
 router.get("/:id", authenticateToken , getOrderById);  
 router.patch("/:id/status", authenticateToken , authorizeRole("seller") , processOrder) ;
