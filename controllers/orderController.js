@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const mongoose = require("mongoose");
+const { calculateOrderTotal } = require ("../services/orderCalculator");
 
 
 const createOrder = async (req , res ) => {
@@ -32,7 +33,7 @@ const createOrder = async (req , res ) => {
 
 
       for(const item of items) {
-        if (!item || !item.product || !Number.isInteger(item.quantity)) {
+        if (!item || !item.productId || !Number.isInteger(item.quantity)) {
             return res.status(400).json({
                 error: {
                     message: "product and valid quantity are required"
@@ -51,7 +52,7 @@ const createOrder = async (req , res ) => {
         }
 
 
-        if (!mongoose.Types.ObjectId.isValid(item.product)) {
+        if (!mongoose.Types.ObjectId.isValid(item.productId)) {
             return res.status(400).json({
                 error: {
                     message: "invalid product ID"
@@ -61,7 +62,7 @@ const createOrder = async (req , res ) => {
 
 
 
-        const productId = item.product.toString() ;
+        const productId = item.productId.toString() ;
 
         if (productIds.includes(productId)) {
             return res.status(400).json({
@@ -76,7 +77,7 @@ const createOrder = async (req , res ) => {
 
 
 
-        const product = await Product.findById(item.product);
+        const product = await Product.findById(item.productId);
 
         if(!product) {
             return res.status(404).json({
@@ -106,17 +107,27 @@ const createOrder = async (req , res ) => {
 
 
 
-         
+     // let totalCents = 0 ;
+     // for (const item of orderItems) {
+     //   totalCents = totalCents + item.unitPriceCents * item.quantity ;
 
-       
-      
-      
+     // }
 
-      let totalCents = 0 ;
-      for (const item of orderItems) {
-        totalCents = totalCents + item.unitPriceCents * item.quantity ;
+     // Calculate order total
 
+     let totalCents ;
+      try {
+        totalCents = calculateOrderTotal(orderItems);
+      } catch (error) {
+        return res.status(400).json({
+            error: {
+                message: error.message
+            }
+        });
       }
+
+
+     // Create order
 
       const order = await Order.create({
         client: req.user.id,
@@ -182,4 +193,111 @@ const getAllOrders = async (req,res) => {
     }
 };
 
-module.exports = {createOrder , getMyOrders , getAllOrders} ;
+
+
+const getOrderById = async (req,res) => {
+  try {
+    const id = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+            error: {
+                message: "invalid order ID"
+            }
+        });
+    }
+
+    const order = await Order.findById(id) ;
+
+    if(!order) {
+        return res.status(404).json({
+            error:{
+                message: "order not found"
+            }
+        });
+    }
+
+    if (req.user.role === "customer" && order.client.toString() !== req.user.id) {
+        return res.status(403).json({
+            error:{
+                message: "access forbidden"
+            }
+        });
+    }
+
+    return res.status(200).json({
+        order: order
+    });
+  } catch (error) {
+    console.error(error);
+
+
+    return res.status(500).json({
+        error: {
+            message: "server error"
+        }
+    });
+  }
+};
+
+
+const processOrder = async (req,res) => {
+    try {
+        const id = req.params.id ;
+
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                error: {
+                    message: "invalid order ID"
+                }
+            });
+        }
+
+        const order = await Order.findById(id);
+
+
+        if(!order) {
+            return res.status(404).json({
+                error: {
+                    message: "order not found"
+                }
+            });
+        }
+
+        if(req.body && req.body.status !== undefined && req.body.status !== "processed"){
+            return res.status(400).json({
+                error: {
+                    message: "invalid order status"
+                }
+            });
+        }
+
+        if(order.status === "processed") {
+            return res.status(200).json({
+                
+                    message: "order is already processed",
+                    order: order
+            });
+        }
+
+        order.status = "processed" ;
+
+        await order.save() ;
+
+        return res.status(200).json({
+            message: "order processed successfully" ,
+            order: order
+        }) ;
+    } catch (error) {
+        console.error(error) ;
+         
+        return res.status(500).json({
+            error: {
+                message: "server error"
+            }
+        });
+    }
+};
+
+module.exports = {createOrder , getMyOrders , getAllOrders , getOrderById , processOrder} ;
